@@ -3,7 +3,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from psycopg2 import OperationalError, errorcodes, errors
 import time
-import schemas
+from . import schemas
 from typing import List
 
 
@@ -40,7 +40,7 @@ def create_post(post : schemas.PostCreate):
 
 @app.get("/posts/{id}", response_model=schemas.PostResponse)
 def get_post(id : int):
-    cur.execute("SELECT * FROM posts Where id = %s", str(id))
+    cur.execute("SELECT * FROM posts Where id = %s", (str(id),))
     posts = cur.fetchone()
     if not posts:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Post with id {str(id)} not found.')
