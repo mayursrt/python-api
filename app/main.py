@@ -1,15 +1,15 @@
-from typing import Optional
 from fastapi import FastAPI, Response, status, HTTPException
-from fastapi.params import Body
-from pydantic import BaseModel
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from psycopg2 import OperationalError, errorcodes, errors
 import time
+import schemas
+from typing import List
 
 
 while True:
     try:
-        conn = psycopg2.connect("host=localhost dbname=python-API user=postgres password=admin", cursor_factory=RealDictCursor)
+        conn = psycopg2.connect("host=localhost dbname=python-api user=postgres password=admin", cursor_factory=RealDictCursor)
         cur = conn.cursor()
         break
     except Exception as error:
@@ -21,37 +21,30 @@ while True:
         time.sleep(2)
 
 
-class Post(BaseModel):
-    title : str
-    content : str
-    published : bool = True
-    rating : Optional[int] = None
-
 app = FastAPI()
 
 
-
-@app.get("/posts")
+@app.get("/posts", response_model=List[schemas.PostResponse])
 def get_posts():
     cur.execute("SELECT * FROM posts LIMIT 100")
     posts = cur.fetchall()
-    return {"data": posts}
+    return posts
 
 
-@app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_post(post : Post):
+@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
+def create_post(post : schemas.PostCreate):
     cur.execute("Insert into posts(title, content, published) Values (%s, %s, %s) Returning *",(post.title,post.content, post.published))
     new_post = cur.fetchone()
     conn.commit()
-    return {"data":new_post}
+    return new_post
 
-@app.get("/posts/{id}")
+@app.get("/posts/{id}", response_model=schemas.PostResponse)
 def get_post(id : int):
     cur.execute("SELECT * FROM posts Where id = %s", str(id))
     posts = cur.fetchone()
     if not posts:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Post with id {str(id)} not found.')
-    return {"data": posts}
+    return posts
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id : int):
@@ -63,14 +56,23 @@ def delete_post(id : int):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.put("/posts/{id}")
-def update_post(id : int, post : Post):
-    cur.execute("Update posts Set title = %s, content = %s, published = %s Where id = %s Returning *", (post.title, post.content, post.published,str(id)))
+@app.put("/posts/{id}", response_model=schemas.PostResponse)
+def update_post(id : int, post : schemas.PostUpdate):
+    cur.execute("Update posts Set title = %s, content = %s, published = %s, updated_at = %s Where id = %s Returning *", (post.title, post.content, post.published, "now()",str(id)))
     
     updated_post = cur.fetchone()
     if not updated_post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Post with id {str(id)} not found.')
     conn.commit()
-    return {"data" : updated_post}
+    return updated_post
     
-    
+
+@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserResponse)
+def create_user(user : schemas.UserCreate):
+    try:
+        cur.execute("Insert into users(email, password) Values ( %s, %s) Returning *",(user.email,user.password))
+        new_user = cur.fetchone()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f'User with email {user.email} already exists. {e}') 
+    conn.commit()
+    return new_user
