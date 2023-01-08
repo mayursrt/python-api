@@ -18,9 +18,6 @@ while True:
         cur = conn.cursor()
         break
     except Exception as error:
-        print("Connection Failed")
-
-    except Exception as error:
         print("Connecting to database failed")
         print("Error: ", error)
         time.sleep(2)
