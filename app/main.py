@@ -5,6 +5,11 @@ from psycopg2 import OperationalError, errorcodes, errors
 import time
 from . import schemas
 from typing import List
+from passlib.context import CryptContext
+
+
+app = FastAPI()
+pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 
 while True:
@@ -19,10 +24,6 @@ while True:
         print("Connecting to database failed")
         print("Error: ", error)
         time.sleep(2)
-
-
-app = FastAPI()
-
 
 @app.get("/posts", response_model=List[schemas.PostResponse])
 def get_posts():
@@ -69,6 +70,9 @@ def update_post(id : int, post : schemas.PostUpdate):
 
 @app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserResponse)
 def create_user(user : schemas.UserCreate):
+    pwd_hash = pwd_context.hash(user.password)
+    user.password = pwd_hash
+    
     try:
         cur.execute("Insert into users(email, password) Values ( %s, %s) Returning *",(user.email,user.password))
         new_user = cur.fetchone()
