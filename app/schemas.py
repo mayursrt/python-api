@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+from datetime import datetime
 
 class PostBase(BaseModel):
     title : str
@@ -16,10 +17,15 @@ class PostResponse(PostBase):
     id : int
 
 
-
 class UserCreate(BaseModel):
     email : EmailStr
     password : str
 
 class UserResponse(BaseModel):
     email : EmailStr
+    id : int
+    created_at : datetime
+    
+class UserLogin(BaseModel):
+    email : EmailStr
+    password : str
