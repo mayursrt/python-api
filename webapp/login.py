@@ -1,6 +1,5 @@
 import streamlit as st
 import auth
-import requests
 from streamlit_ws_localstorage import injectWebsocketCode
 import uuid
 

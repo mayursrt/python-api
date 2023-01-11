@@ -5,6 +5,13 @@ from typing import List
 
 router = APIRouter(prefix="/posts", tags=['Posts'])
 
+@router.get("/published", response_model=List[schemas.PostResponse])
+def get_posts():
+    db.cur.execute("SELECT * FROM posts Where published = True order by created_at DESC")
+    posts = db.cur.fetchall()
+    return posts
+
+
 @router.get("/", response_model=List[schemas.PostResponse])
 def get_posts(current_user: int = Depends(oauth2.get_current_user)):
     db.cur.execute("SELECT * FROM posts Where created_by = %s", (str(current_user['id']),))
