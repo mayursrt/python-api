@@ -1,6 +1,5 @@
-from fastapi import FastAPI, Response, status, HTTPException
+from fastapi import FastAPI, Response, status, HTTPException,Depends
 from .routers import posts, users, auth
-
 
 
 app = FastAPI()
