@@ -7,7 +7,6 @@ router = APIRouter(prefix="/posts", tags=['Posts'])
 
 @router.get("/all", response_model=List[schemas.AllPostsResponse])
 def get_all_posts(limit : int = 10, skip : int = 0, search : Optional[str] = ""):
-    print(search.lower)
     # db.cur.execute("SELECT * FROM posts Where published = True order by created_at DESC")
     db.cur.execute("SELECT p.id, p.title, p.content, p.published, u.username FROM posts p join users u on u.id = p.created_by where p.published = true AND LOWER(p.title) LIKE %s ORDER BY p.created_at DESC LIMIT %s OFFSET %s",("%"+search.lower()+"%",str(limit), str(skip)))
     posts = db.cur.fetchall()
