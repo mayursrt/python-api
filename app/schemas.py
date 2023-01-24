@@ -7,7 +7,7 @@ from typing import Optional
 class PostBase(BaseModel):
     title : str
     content : str
-    published : bool = True
+    published : bool = False
     class Config:
         orm_mode = True
     
@@ -20,6 +20,7 @@ class PostCreate(PostBase):
 class PostUpdate(PostBase):
     pass
 
+
 class PostResponse(PostBase):
     id : int
     class Config:
@@ -29,7 +30,9 @@ class PostResponse(PostBase):
 class UserResponse(BaseModel):
     email : EmailStr
     id : int
-    created_at : datetime
+    username : str
+    class Config:
+        orm_mode = True
     
 
 class AllPostsResponse(PostBase):
@@ -41,11 +44,16 @@ class AllPostsResponse(PostBase):
 class UserCreate(BaseModel):
     email : EmailStr
     password : str
+    username : str
 
 
 class UserLogin(BaseModel):
     email : EmailStr
     password : str
+
+class UserInfo(UserResponse):
+    created_at : datetime
+
 
 class Token(BaseModel):
     access_token : str
