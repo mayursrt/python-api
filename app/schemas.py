@@ -3,6 +3,13 @@ from datetime import datetime
 from typing import Optional
 
 
+class UserResponse(BaseModel):
+    email : EmailStr
+    id : int
+    username : str
+    class Config:
+        orm_mode = True
+    
 
 class PostBase(BaseModel):
     title : str
@@ -11,8 +18,6 @@ class PostBase(BaseModel):
     class Config:
         orm_mode = True
     
-    
-
 
 class PostCreate(PostBase):
     pass
@@ -23,17 +28,11 @@ class PostUpdate(PostBase):
 
 class PostResponse(PostBase):
     id : int
+    owner : UserResponse
     class Config:
         orm_mode = True
 
 
-class UserResponse(BaseModel):
-    email : EmailStr
-    id : int
-    username : str
-    class Config:
-        orm_mode = True
-    
 
 class AllPostsResponse(PostBase):
     id : int
