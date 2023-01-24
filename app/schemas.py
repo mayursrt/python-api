@@ -8,6 +8,10 @@ class PostBase(BaseModel):
     title : str
     content : str
     published : bool = True
+    class Config:
+        orm_mode = True
+    
+    
 
 
 class PostCreate(PostBase):
@@ -18,20 +22,26 @@ class PostUpdate(PostBase):
 
 class PostResponse(PostBase):
     id : int
+    class Config:
+        orm_mode = True
 
-class AllPostsResponse(PostBase):
-    id : int
-    username : str
-
-class UserCreate(BaseModel):
-    email : EmailStr
-    password : str
 
 class UserResponse(BaseModel):
     email : EmailStr
     id : int
     created_at : datetime
     
+
+class AllPostsResponse(PostBase):
+    id : int
+    class Config:
+        orm_mode = True
+    
+
+class UserCreate(BaseModel):
+    email : EmailStr
+    password : str
+
 
 class UserLogin(BaseModel):
     email : EmailStr
