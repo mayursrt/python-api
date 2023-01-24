@@ -6,12 +6,12 @@ from sqlalchemy import func
 
 router = APIRouter(prefix="/posts", tags=['Posts'])
 
-@router.get("/all", response_model=List[schemas.AllPostsResponse])
+@router.get("/all", response_model=List[schemas.PostOut])
 def get_all_posts(db: Session = Depends(db.get_db), limit : int = 10, skip : int = 0, search : Optional[str] = ""):
     # db.cur.execute("SELECT * FROM posts Where published = True order by created_at DESC")
     # db.cur.execute("SELECT p.id, p.title, p.content, p.published, u.username FROM posts p join users u on u.id = p.created_by where p.published = true AND LOWER(p.title) LIKE %s ORDER BY p.created_at DESC LIMIT %s OFFSET %s",("%"+search.lower()+"%",str(limit), str(skip)))
     # posts = db.cur.fetchall()
-    posts = db.query(models.Post).filter(func.lower(models.Post.title).contains(str(search.lower()))&(models.Post.published==True)).limit(limit).offset(skip).all()
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(func.lower(models.Post.title).contains(str(search.lower()))&(models.Post.published==True)).limit(limit).offset(skip).all()
     return posts
 
 

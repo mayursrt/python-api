@@ -33,6 +33,11 @@ class PostResponse(PostBase):
     class Config:
         orm_mode = True
 
+class PostOut(BaseModel):
+    Post : PostBase
+    votes : int
+    class Config:
+        orm_mode = True
 
 
 class AllPostsResponse(PostBase):
