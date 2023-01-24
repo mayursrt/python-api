@@ -15,19 +15,19 @@ def get_all_posts(db: Session = Depends(db.get_db), limit : int = 10, skip : int
     return posts
 
 
-@router.get("/", response_model=List[schemas.PostResponse])
+@router.get("/", response_model=List[schemas.PostOut])
 def get_posts(db: Session = Depends(db.get_db), current_user: int = Depends(oauth2.get_current_user)):
     # db.cur.execute("SELECT * FROM posts Where created_by = %s", (str(current_user['id']),))
     # posts = db.cur.fetchall()
-    posts = db.query(models.Post).filter(models.Post.created_by == current_user.id).all()
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(models.Post.created_by == current_user.id).all()
     return posts
 
 
-@router.get("/{id}", response_model=schemas.PostResponse)
+@router.get("/{id}", response_model=schemas.PostOut)
 def get_post(id : int,db: Session = Depends(db.get_db), current_user: int = Depends(oauth2.get_current_user)):
     # db.cur.execute("SELECT * FROM posts Where id = %s and created_by = %s", (str(id),current_user['id']))
     # post = db.cur.fetchone()
-    post = db.query(models.Post).filter((models.Post.id == id)&(models.Post.created_by == current_user.id)).first()
+    post = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter((models.Post.id == id)&(models.Post.created_by == current_user.id)).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Post with id {str(id)} not found for current user.')
     return post
